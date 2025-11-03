@@ -1,41 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './WeatherApp.css';
+
 function WeatherApp() {
   const [city, setCity] = useState('');
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCelsius, setIsCelsius] = useState(true);
 
   const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+  
+  useEffect(() => {
+    setCity('Islamabad');
+    fetchWeatherForCity('Islamabad');
+  }, []);
+
+  const toggleTemperature = () => {
+    setIsCelsius(!isCelsius);
+  }
+
+  const convertTemp = (temp) => {
+    if (isCelsius) {
+      return Math.round(temp);
+    } else {
+      return Math.round((temp * 9 / 5) + 32);
+    }
+  }
 
   const handleSearch = () => {
-    fetchWeather();
+    fetchWeatherForCity(city);
   }
-  // Phase 3
-  const fetchWeather = async () => {
-    if (!city.trim()) {
+
+  const fetchWeatherForCity = async (cityName) => {
+    if (!cityName.trim()) {
       setError("please enter a city name");
       return;
     }
 
-    //states reset
     setLoading(true);
     setError('');
     setWeatherData(null);
 
-    //API call
     try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
-
-      console.log("Checking API URL:", url);
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=${API_KEY}&units=metric`;
 
       const response = await fetch(url);
       const data = await response.json();
 
-      // Check response
       if (response.ok) {
         setWeatherData(data);
-        console.log("Weather data:", data);
       } else {
         setError(data.message || "City not found");
       }
@@ -46,26 +59,23 @@ function WeatherApp() {
       setLoading(false);
     }
   }
+
   return (
     <div className="weather-container">
       <div className="weather-box">
         <h1 className='heading'>Check the Weather</h1>
         <div className="search-section">
-          {/* Phase 2 step 1*/}
-          <input className='city-input'
+          <input 
+            className='city-input'
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Enter city name"
           />
           <button className='search-btn' onClick={handleSearch}>Search</button>
         </div>
-        {/*Phase 2 step 2 */}
+
         {!weatherData && !loading && !error && (
           <p>Search for a city</p>
         )}
@@ -76,24 +86,26 @@ function WeatherApp() {
 
         {weatherData && (
           <div className="weather-card">
-            {/*Phase 4 step 1 city name & country */}
             <h2>{weatherData.name}, {weatherData.sys?.country}</h2>
 
-            {/* {Weather icon} */}
             <img
               src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
               alt={weatherData.weather[0].description}
             />
 
-            {/* {Temperature} */}
-            <p className='temperature'>{Math.round(weatherData.main?.temp)}°C</p>
+            <div className="temp-section">
+              <p className='temperature'>
+                {convertTemp(weatherData.main?.temp)}°{isCelsius ? 'C' : 'F'}
+              </p>
+              <button className='temp-toggle' onClick={toggleTemperature}>
+                Switch to °{isCelsius ? 'F' : 'C'}
+              </button>
+            </div>
 
-            {/* {Description} */}
             <p className="description">{weatherData.weather[0].description}</p>
 
-            {/* {Additional details} */}
             <div className="weather-details">
-              <p>Feels like: {Math.round(weatherData.main?.feels_like)}°C</p>
+              <p>Feels like: {convertTemp(weatherData.main?.feels_like)}°{isCelsius ? 'C' : 'F'}</p>
               <p>Humidity: {weatherData.main?.humidity}%</p>
               <p>Wind Speed: {weatherData.wind?.speed} m/s</p>
             </div>
