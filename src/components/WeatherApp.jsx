@@ -7,13 +7,30 @@ function WeatherApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isCelsius, setIsCelsius] = useState(true);
+  const [recentSearches, setRecentSearches] = useState([]);
 
   const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
   
   useEffect(() => {
+    // Load recent searches from localStorage
+    const saved = localStorage.getItem('recentSearches');
+    if (saved){
+      setRecentSearches(JSON.parse(saved));
+    }
+    // Default city load
     setCity('Islamabad');
     fetchWeatherForCity('Islamabad');
   }, []);
+
+  const savedToRecentSearches = (cityName) => {
+   const formattedCity = cityName.trim().charAt(0).toUpperCase() + cityName.trim().slice(1).toLowerCase();
+  
+  let updated = [formattedCity, ...recentSearches.filter(c => c.toLowerCase() !== formattedCity.toLowerCase())]; 
+  updated = updated.slice(0, 5);
+
+  setRecentSearches(updated);
+  localStorage.setItem('recentSearches', JSON.stringify(updated));
+}
 
   const toggleTemperature = () => {
     setIsCelsius(!isCelsius);
@@ -49,6 +66,7 @@ function WeatherApp() {
 
       if (response.ok) {
         setWeatherData(data);
+        savedToRecentSearches(cityName);
       } else {
         setError(data.message || "City not found");
       }
@@ -75,6 +93,26 @@ function WeatherApp() {
           />
           <button className='search-btn' onClick={handleSearch}>Search</button>
         </div>
+        {/* ⬇️ Recent searches section */}
+{recentSearches.length > 0 && (
+  <div className="recent-searches">
+    <p className="recent-label">Recent Searches:</p>
+    <div className="recent-buttons">
+      {recentSearches.map((recentCity, index) => (
+        <button
+          key={index}
+          className="recent-btn"
+          onClick={() => {
+            setCity(recentCity);
+            fetchWeatherForCity(recentCity);
+          }}
+        >
+          {recentCity}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
 
         {!weatherData && !loading && !error && (
           <p>Search for a city</p>

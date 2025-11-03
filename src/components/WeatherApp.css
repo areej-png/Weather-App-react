@@ -77,6 +77,38 @@
     background: #ffe5e5;
 }
 
+.recent-searches {
+    margin-bottom: 1.5rem;
+}
+
+.recent-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.recent-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.recent-btn {
+    padding: 0.5rem 1rem;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.recent-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
 /* Weather Card */
 .weather-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
