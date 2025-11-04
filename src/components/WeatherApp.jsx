@@ -14,23 +14,40 @@ function WeatherApp() {
   useEffect(() => {
     // Load recent searches from localStorage
     const saved = localStorage.getItem('recentSearches');
-    if (saved){
-      setRecentSearches(JSON.parse(saved));
+    let cityToLoad = 'Islamabad';  // default
+    
+    if (saved) {
+      const parsedSearches = JSON.parse(saved);
+      setRecentSearches(parsedSearches);
+      
+      if (parsedSearches.length > 0) {
+        cityToLoad = parsedSearches[0];
+      }
     }
-    // Default city load
-    setCity('Islamabad');
-    fetchWeatherForCity('Islamabad');
+    
+    //Default City load
+    setCity(cityToLoad);
+    fetchWeatherForCity(cityToLoad);
   }, []);
 
+  //savedToRecentSearches function
   const savedToRecentSearches = (cityName) => {
-   const formattedCity = cityName.trim().charAt(0).toUpperCase() + cityName.trim().slice(1).toLowerCase();
-  
-  let updated = [formattedCity, ...recentSearches.filter(c => c.toLowerCase() !== formattedCity.toLowerCase())]; 
-  updated = updated.slice(0, 5);
-
-  setRecentSearches(updated);
-  localStorage.setItem('recentSearches', JSON.stringify(updated));
-}
+    const formattedCity = cityName.trim().charAt(0).toUpperCase() + cityName.trim().slice(1).toLowerCase();
+    
+    // localStorage se directly read karo
+    const saved = localStorage.getItem('recentSearches');
+    const currentSearches = saved ? JSON.parse(saved) : [];
+    
+    // removeDuplicate  
+    let updated = [formattedCity, ...currentSearches.filter(c => c.toLowerCase() !== formattedCity.toLowerCase())];
+    
+    // Maximum 5
+    updated = updated.slice(0, 5);
+    
+    //update State and localStorage 
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  }
 
   const toggleTemperature = () => {
     setIsCelsius(!isCelsius);
@@ -93,26 +110,26 @@ function WeatherApp() {
           />
           <button className='search-btn' onClick={handleSearch}>Search</button>
         </div>
-        {/* ⬇️ Recent searches section */}
-{recentSearches.length > 0 && (
-  <div className="recent-searches">
-    <p className="recent-label">Recent Searches:</p>
-    <div className="recent-buttons">
-      {recentSearches.map((recentCity, index) => (
-        <button
-          key={index}
-          className="recent-btn"
-          onClick={() => {
-            setCity(recentCity);
-            fetchWeatherForCity(recentCity);
-          }}
-        >
-          {recentCity}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
+
+        {recentSearches.length > 0 && (
+          <div className="recent-searches">
+            <p className="recent-label">Recent Searches:</p>
+            <div className="recent-buttons">
+              {recentSearches.map((recentCity, index) => (
+                <button
+                  key={index}
+                  className="recent-btn"
+                  onClick={() => {
+                    setCity(recentCity);
+                    fetchWeatherForCity(recentCity);
+                  }}
+                >
+                  {recentCity}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!weatherData && !loading && !error && (
           <p>Search for a city</p>
@@ -153,4 +170,5 @@ function WeatherApp() {
     </div>
   );
 }
+
 export default WeatherApp;
